@@ -1,1 +1,1 @@
-from .parse_rksi_teachers import parse_teachers
+from .parse_rksi import parse_teachers, parse_lessons_for_student, all_groups
