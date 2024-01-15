@@ -1,3 +1,5 @@
+import json
+
 import aiohttp
 import config
 import requests
@@ -46,6 +48,7 @@ async def parse_lessons_for_student(name_group: str) -> dict:
             all_data = str(soup.find("body"))
 
             result: dict = await process_str_lessons(all_data)
+            await load_to_json(result)
 
             return result
 
@@ -84,6 +87,11 @@ async def process_str_lessons(data_str: str) -> dict:
             else:
                 dct_to_add[str(numeric_data)] = day_lesson.strip()
 
-        numeric_data += 1
+            numeric_data += 1
 
     return lessons
+
+
+async def load_to_json(data_dict_lessons: dict) -> None:
+    with open("data/lessons_schedule.json", "w") as js_write:
+        json.dump(data_dict_lessons, js_write, indent=4, ensure_ascii=False)
