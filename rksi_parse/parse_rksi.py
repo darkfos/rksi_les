@@ -38,27 +38,52 @@ async def all_groups() -> list:
             return all_groups_lst
 
 
-async def parse_lessons_for_student(name_group: str):
+async def parse_lessons_for_student(name_group: str) -> dict:
     async with aiohttp.ClientSession() as session:
         async with session.post(url_mobile, data={"group": name_group, "stt": "Показать!"}) as response:
             read_file = await aiohttp.StreamReader.read(response.content)
             soup = BeautifulSoup(read_file, "html.parser")
             all_data = str(soup.find("body"))
-            test_re = re.findall(r"<h3>.+<br/>&?", all_data)
-            data_with_for_split = re.findall(r"<b>.+<hr/><b>", test_re[0])
-            unique_algorithm: list = list()
-            new_word = ""
-            for word in data_with_for_split[0]:
-                if word in "<b>pr":
-                    new_word += ""
-                elif word == "/":
-                    if len(new_word) > 1:
-                        unique_algorithm.append(new_word)
-                    new_word = ""
-                elif word == "h":
-                    unique_algorithm.append("\n")
-                else:
-                    new_word += word
 
-            print(data_with_for_split)
-            print(unique_algorithm)
+            result: dict = await process_str_lessons(all_data)
+
+            return result
+
+
+async def process_str_lessons(data_str: str) -> dict:
+    test_re = re.findall(r"<h3>.+<p><a>?", data_str)
+    data_with_for_split = re.findall(r"<b>.+$", test_re[0])
+    unique_algorithm: list = list()
+    new_word = ""
+    for word in data_with_for_split[0]:
+        if word in "<b>pr":
+            new_word += ""
+        elif word == "/":
+            if len(new_word) > 1:
+                unique_algorithm.append(new_word)
+            new_word = ""
+        elif word == "h":
+            unique_algorithm.append("\n")
+        else:
+            new_word += word
+
+    lessons: dict = dict()
+    dct_to_add: dict = dict()
+
+    count_day: int = 0
+    numeric_data: int = 0
+    for day_lesson in unique_algorithm:
+        if day_lesson == "\n":
+            lessons[count_day] = dct_to_add
+            dct_to_add = dict()
+            numeric_data = 0
+            count_day += 1
+        else:
+            if numeric_data == 0:
+                dct_to_add["День"] = day_lesson.strip()
+            else:
+                dct_to_add[str(numeric_data)] = day_lesson.strip()
+
+        numeric_data += 1
+
+    return lessons
