@@ -1,9 +1,8 @@
-import emoji
-
 from aiogram import Router, types
 from aiogram.types import FSInputFile
 
 from bot.filters import TeacherData
+from bot.text import get_all_teachers
 from rksi_parse import parse_teachers, loat_prepods_in_file
 
 
@@ -15,12 +14,8 @@ async def sel_prepods_button(callback_bt: types.CallbackQuery):
     all_teachers: list = await parse_teachers()
 
     if callback_bt.data == "list_btn":
-        msg_for_user: str = ""
 
-        for teacher in all_teachers:
-            msg_for_user += emoji.emojize(":man_teacher: {0}\n".format(teacher), language="en")
-
-        await callback_bt.message.reply(msg_for_user)
+        await callback_bt.message.reply(await get_all_teachers(all_teachers))
 
     else:
         #Запись данных в файл, необходимо для отправки

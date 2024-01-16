@@ -8,6 +8,8 @@ import re
 
 from bs4 import BeautifulSoup
 
+from .load_to_file import load_to_json
+
 url = config.URL_RKSI_PREPODS
 url_mobile = config.URL_RKSI_MOBILE
 
@@ -56,7 +58,9 @@ async def parse_lessons_for_student(name_group: str) -> dict:
 async def process_str_lessons(data_str: str) -> dict:
     test_re = re.findall(r"<h3>.+<p><a>?", data_str)
     data_with_for_split = re.findall(r"<b>.+$", test_re[0])
+
     unique_algorithm: list = list()
+
     new_word = ""
     for word in data_with_for_split[0]:
         if word in "<b>pr":
@@ -71,22 +75,21 @@ async def process_str_lessons(data_str: str) -> dict:
             new_word += word
 
     lessons: dict = dict()
-    dct_to_add: dict = dict()
+    all_lessons: dict = dict()
 
-    count_day: int = 0
-    numeric_data: int = 0
-    for day_lesson in unique_algorithm:
-        if day_lesson == "\n":
-            lessons[count_day] = dct_to_add
-            dct_to_add = dict()
-            numeric_data = 0
-            count_day += 1
-        else:
-            if numeric_data == 0:
-                dct_to_add["День"] = day_lesson.strip()
-            else:
-                dct_to_add[str(numeric_data)] = day_lesson.strip()
+    lst: list = list()
+    month: list = ["январ", "феврал", "март", "апрел", "мая", "июн", "июл", "август", "сентябр", "октябр", "ноябр", "декабр"]
 
-            numeric_data += 1
+    name_key_d: str = ""
+    copy_name_d: str = ""
+    for info in unique_algorithm:
+        if any([m in info.strip() for m in month]):
+            name_key_d = info.strip()
+            if name_key_d != copy_name_d and name_key_d != "" and copy_name_d != "":
+                lessons[copy_name_d] = lst
+                lst = list()
+            copy_name_d = info.strip()
+        if len(info) > 1:
+            lst.append(info.strip())
 
     return lessons

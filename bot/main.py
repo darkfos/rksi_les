@@ -13,7 +13,7 @@ from .text import help_text
 from rksi_parse import parse_teachers
 from .states import TeacherState
 from .keyboards import sel_to_teachers
-from .handlers import callback_router
+from .handlers import callback_router, msg_router
 from .middleware import CustomMiddleware
 
 main_router = Router()
@@ -49,7 +49,7 @@ async def get_name_teacher(message: Message, state: FSMContext):
             await message.answer(text="Преподаватель был найден в БД")
             flag_teacher = True
     if not flag_teacher:
-        await message.answer("Такого нет...")
+        await message.answer("Такого нет учителя нет, попробуйте ещё раз.")
 
 async def start_bot():
     rksi_bot = Bot(token=config.API_KEY_TG)
@@ -58,6 +58,7 @@ async def start_bot():
     dp.include_routers(
         main_router,
         callback_router,
+        msg_router,
     )
 
     await dp.start_polling(rksi_bot)
