@@ -19,3 +19,13 @@ async def get_all_teachers(lst_teachers: List) -> str:
         all_teachers += emoji.emojize(":man_teacher: {0}\n".format(teacher), language="en")
 
     return all_teachers
+
+
+async def get_all_groups(lst_groups: List) -> str:
+
+    all_grp: str = ""
+
+    for group in lst_groups:
+        all_grp += emoji.emojize(":books: {}".format(group), language="en") + "\n"
+
+    return all_grp
