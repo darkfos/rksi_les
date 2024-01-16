@@ -6,10 +6,15 @@ from aiogram.filters import CommandStart
 from aiogram import Dispatcher, Bot
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.filters.command import Command
+from aiogram.fsm.context import FSMContext
+
+
 from .text import help_text
 from rksi_parse import parse_teachers
-from aiogram.fsm.context import FSMContext
 from .states import TeacherState
+from .keyboards import sel_to_teachers
+from .handlers import callback_router
+from .middleware import CustomMiddleware
 
 main_router = Router()
 
@@ -25,12 +30,7 @@ async def help_command(message: Message):
 
 @main_router.message(Command("prepods"))
 async def all_teachers(message: Message):
-    all_teachers: list = await parse_teachers()
-    answer: str = ""
-    for teacher in all_teachers:
-        answer += teacher + "\n"
-
-    await message.answer("<u>Список всех преподавателей: </u>\n{0}".format(answer), parse_mode="HTML")
+    await message.answer("<b>Выберите</b> пункт для получения формата ответа: ", parse_mode="HTML", reply_markup=await sel_to_teachers())
 
 
 @main_router.message(Command("prepod_name"))
@@ -55,8 +55,9 @@ async def start_bot():
     rksi_bot = Bot(token=config.API_KEY_TG)
     storage = MemoryStorage()
     dp = Dispatcher(bot=rksi_bot, storage=storage)
-    dp.include_router(
-        main_router
+    dp.include_routers(
+        main_router,
+        callback_router,
     )
 
     await dp.start_polling(rksi_bot)
