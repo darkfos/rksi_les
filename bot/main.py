@@ -15,6 +15,7 @@ from .states import TeacherState
 from .keyboards import sel_to_teachers
 from .handlers import callback_router, msg_router
 from .middleware import CustomMiddleware
+from .utils_bot import set_all_commands
 
 main_router = Router()
 
@@ -55,10 +56,12 @@ async def start_bot():
     rksi_bot = Bot(token=config.API_KEY_TG)
     storage = MemoryStorage()
     dp = Dispatcher(bot=rksi_bot, storage=storage)
+    dp.message.middleware(CustomMiddleware())
     dp.include_routers(
         main_router,
         callback_router,
         msg_router,
     )
 
+    await set_all_commands(rksi_bot)
     await dp.start_polling(rksi_bot)

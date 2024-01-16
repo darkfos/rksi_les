@@ -1,1 +1,1 @@
-from .teacher_name import CustomMiddleware
+from .antiflood import CustomMiddleware
