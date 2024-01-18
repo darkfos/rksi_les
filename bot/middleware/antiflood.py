@@ -9,7 +9,7 @@ from typing import Callable, Dict, Any, Awaitable
 class CustomMiddleware(BaseMiddleware):
     def __init__(self, limit: int = 1):
         BaseMiddleware.__init__(self)
-        self.limit = cachetools.TTLCache(maxsize=1000, ttl=limit)
+        self.limit = cachetools.TTLCache(maxsize=100000, ttl=limit)
 
 
     async def __call__(self,
