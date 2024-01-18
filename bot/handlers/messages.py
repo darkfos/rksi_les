@@ -39,7 +39,7 @@ async def get_name_grp_user(message: types.Message, state: FSMContext):
         await state.clear()
 
         all_info["tg_id"] = message.from_user.id
-        Database().add_one_user(data=all_info)
+        await Database().add_one_user(data=all_info)
 
     else:
         await message.answer("Такой группы не существует. Повторите попытку!")

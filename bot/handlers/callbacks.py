@@ -1,10 +1,12 @@
+import json
+
 from aiogram import Router, types, F
 from aiogram.types import FSInputFile
 from aiogram.fsm.context import FSMContext
 
 from bot.filters import TeacherData, GroupsData
 from bot.text import get_all_teachers, get_all_groups
-from rksi_parse import parse_teachers, load_prepods_in_file, load_groups_in_file, all_groups
+from rksi_parse import parse_teachers, load_prepods_in_file, load_groups_in_file, all_groups, parse_lessons_for_student
 from bot.states import SampleData
 from utils import Database
 
@@ -51,12 +53,25 @@ async def sel_groups_button(callback_bt: types.CallbackQuery):
 @callback_router.callback_query(F.data.endswith("stbtn"))
 async def button_to_start_menu(callback_st_mn: types.CallbackQuery, state: FSMContext):
     if callback_st_mn.data == "shablon_stbtn":
-        md = Database().get_one_user(
-            data={"tg_id": callback_st_mn.message.message_id}
-        )
+        md = Database()
+        res = await md.get_one_user(data={"tg_id": callback_st_mn.from_user.id})
 
-        if md:
+        if res:
             await callback_st_mn.message.answer("Вы были найдены в базе данных, ожидайте ответа")
+
+            get_lessons = await parse_lessons_for_student(res["name_group"])
+
+            with open("data/lessons_schedule.json", "r") as js_file:
+                file = json.load(js_file)
+
+                message: str = ""
+
+                for day in file.keys():
+                    for info_less in file[day]:
+                        message += info_less + "\n"
+
+                await callback_st_mn.message.answer(message)
+
 
         else:
             await callback_st_mn.message.reply("Введите ваше имя")
