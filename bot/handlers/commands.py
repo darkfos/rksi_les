@@ -16,7 +16,7 @@ command_router = Router()
 
 @command_router.message(CommandStart())
 async def start_command(message: Message):
-    await message.reply("Привет {0}! Выбери пункт меню".format(message.from_user.full_name), reply_markup=await get_start_bt(),)
+    await message.reply("Привет {0}! Выбери пункт меню".format(message.from_user.full_name), reply_markup=await get_start_bt())
 
 
 @command_router.message(Command("help"))
