@@ -10,8 +10,11 @@ class Database:
         self.table_users.insert_one(data)
         print("great!")
 
-    def get_one_user(self, data: dict):
-        self.table_users.select_one(data)
+    def get_one_user(self, data: dict) -> None:
+        try:
+            self.table_users.select_one(data)
+        except TypeError as te:
+            return None
 
     def get_all_users(self) -> list:
         return list(self.table_users.find())
