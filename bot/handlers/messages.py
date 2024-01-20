@@ -18,9 +18,9 @@ async def new_msg(message: types.Message):
 
 @msg_router.message(FilterChoice())
 async def teach_or_student(message: types.Message, state: FSMContext):
-    if message.text.lower() == "студент":
+    if message.text.lower() == "🎓 студент":
         await message.answer("Пункт меню 'Студент', выберите нужный вам пункт", reply_markup=await get_student_choice_bt())
-    else:
+    elif message.text.lower() == "🧙 преподаватель":
         await state.set_state(TeacherState.name)
         await message.answer("Жду фамилию преподавателя")
 

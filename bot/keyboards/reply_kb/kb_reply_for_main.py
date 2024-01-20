@@ -4,8 +4,8 @@ async def get_start_bt() -> ReplyKeyboardMarkup:
 
     kb = [
         [
-            KeyboardButton(text="Студент"),
-            KeyboardButton(text="Преподаватель")
+            KeyboardButton(text="🎓 Студент"),
+            KeyboardButton(text="🧙 Преподаватель")
         ]
     ]
 

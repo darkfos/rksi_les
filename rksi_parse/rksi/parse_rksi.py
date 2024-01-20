@@ -1,14 +1,11 @@
-import json
-
 import aiohttp
 import config
-import requests
 import re
 
 
 from bs4 import BeautifulSoup
 
-from .load_to_file import load_to_json
+from rksi_parse.files_wr.load_to_file import load_to_json
 
 url = config.URL_RKSI_PREPODS
 url_mobile = config.URL_RKSI_MOBILE

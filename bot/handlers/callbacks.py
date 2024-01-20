@@ -7,7 +7,7 @@ from aiogram.fsm.context import FSMContext
 from bot.filters import TeacherData, GroupsData
 from bot.text import get_all_teachers, get_all_groups
 from rksi_parse import parse_teachers, load_prepods_in_file, load_groups_in_file, all_groups, parse_lessons_for_student, \
-    parse_lessons_for_teachers
+    parse_lessons_for_teachers, load_prepods_to_csv, load_groups_to_csv
 from bot.states import SampleData, GroupState
 from utils import Database
 
@@ -23,14 +23,18 @@ async def sel_prepods_button(callback_bt: types.CallbackQuery):
 
         await callback_bt.message.reply(await get_all_teachers(all_teachers))
 
-    else:
+    elif callback_bt.data == "file_btn":
         #Запись данных в файл, необходимо для отправки
         await load_prepods_in_file(all_teachers)
 
         file_to_send: FSInputFile = FSInputFile("data/all_teachers.txt")
         await callback_bt.message.answer_document(document=file_to_send)
 
-    await callback_bt.answer("Вы выбрали кнопку {0}".format(callback_bt.data))
+    else:
+        await load_prepods_to_csv(all_teachers)
+
+        file_csv = FSInputFile("data/all_teachers.csv")
+        await callback_bt.message.answer_document(document=file_csv)
 
 
 @callback_router.callback_query(GroupsData())
@@ -43,12 +47,20 @@ async def sel_groups_button(callback_bt: types.CallbackQuery):
 
         await callback_bt.message.reply(text=text_all_grp)
 
-    else:
+    elif callback_bt.data == "file_gbtn":
 
         await load_groups_in_file(all_grp)
 
         file_to_send: FSInputFile = FSInputFile("data/all_groups.txt")
         await callback_bt.message.answer_document(document=file_to_send)
+
+    else:
+
+        await load_groups_to_csv(all_grp)
+
+        file_csv = FSInputFile("data/add_groups.csv")
+        await callback_bt.message.answer_document(document=file_csv)
+
 
 
 @callback_router.callback_query(F.data.endswith("stbtn"))
