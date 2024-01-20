@@ -6,8 +6,9 @@ from aiogram.fsm.context import FSMContext
 
 from bot.filters import TeacherData, GroupsData
 from bot.text import get_all_teachers, get_all_groups
-from rksi_parse import parse_teachers, load_prepods_in_file, load_groups_in_file, all_groups, parse_lessons_for_student
-from bot.states import SampleData
+from rksi_parse import parse_teachers, load_prepods_in_file, load_groups_in_file, all_groups, parse_lessons_for_student, \
+    parse_lessons_for_teachers
+from bot.states import SampleData, GroupState
 from utils import Database
 
 
@@ -58,23 +59,54 @@ async def button_to_start_menu(callback_st_mn: types.CallbackQuery, state: FSMCo
 
         if res:
             await callback_st_mn.message.answer("Вы были найдены в базе данных, ожидайте ответа")
-
-            get_lessons = await parse_lessons_for_student(res["name_group"])
-
-            with open("data/lessons_schedule.json", "r") as js_file:
-                file = json.load(js_file)
-
-                message: str = ""
-
-                for day in file.keys():
-                    for info_less in file[day]:
-                        message += info_less + "\n"
-
-                await callback_st_mn.message.answer(message)
-
+            result_all_message: str = await show_all_lessons(name_group=res["name_group"])
+            await callback_st_mn.message.answer(result_all_message, parse_mode="HTML")
 
         else:
             await callback_st_mn.message.reply("Введите ваше имя")
             await state.set_state(SampleData.name)
     else:
-        await callback_st_mn.message.answer("Вы выбрали ручной поиск, введите группу")
+        await callback_st_mn.message.answer("Вы выбрали ручной поиск, введите <b>группу</b>", parse_mode="HTML")
+        await state.set_state(GroupState.name_group)
+
+
+async def show_all_lessons(name_group: str = None, name_teacher: str = None) -> str:
+
+    if name_group:
+        to_find = "lessons_schedule.json"
+        text_find = "Расписание пар для группы <b>{0}</b>".format(name_group)
+        get_lessons = await parse_lessons_for_student(name_group)
+
+    else:
+        to_find = "lessons_schedule_for_teachers.json"
+        text_find = "Расписание пар для Преподавателя <b>{0}</b>".format(name_teacher)
+        get_lessons = await parse_lessons_for_teachers(name_teacher)
+
+    with open(f"data/{to_find}", "r") as js_file:
+        file = json.load(js_file)
+
+        days: list = ["январ", "феврал", "март", "апрел", "мая", "июн", "июл", "август", "сентябр", "октябр", "ноябр",
+                      "декабр"]
+        all_prepods = await parse_teachers()
+        message: str = text_find
+        count_to_res: int = 0
+
+        for day in file.keys():
+            for info_less in file[day]:
+                if any([day in info_less for day in days]):
+                    message += "\n\n" + "📅 " + f"<b>{info_less}</b>" + "\n\n"
+                elif any([teacher in info_less for teacher in all_prepods]):
+                    message += "👨‍🎓 " + info_less + "\n\n"
+                elif info_less[0].isdigit() and info_less[1].isdigit() and name_teacher != None and count_to_res >= 3:
+                    message += "\n\n" + "⏳ " + info_less
+                elif info_less[0].isdigit() and info_less[1].isdigit():
+                    message += "⏳ " + info_less + "\n"
+                else:
+                    if name_teacher:
+                        message += "\n" + "📚 " + info_less
+                    else:
+                        message += "📚 " + info_less + "\n"
+
+                count_to_res += 1
+
+        return message

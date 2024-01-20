@@ -8,6 +8,7 @@ from aiogram.fsm.context import FSMContext
 
 
 from bot.text import help_text, get_all_groups
+from bot.handlers import find_teacher_lessons
 from rksi_parse import parse_teachers, all_groups
 from bot.states import TeacherState
 from bot.keyboards import sel_to_teachers, get_start_bt, sel_to_groups
@@ -43,11 +44,8 @@ async def get_info_by_teacher(message: Message, state: FSMContext):
 async def get_name_teacher(message: Message, state: FSMContext):
     all_teachers: list = await parse_teachers()
     await state.update_data(name=message.text)
-    flag_teacher = False
-    for teacher in all_teachers:
-        if message.text in teacher:
-            await state.clear()
-            await message.answer(text="Преподаватель был найден в БД")
-            flag_teacher = True
-    if not flag_teacher:
-        await message.answer("Такого нет учителя нет, попробуйте ещё раз.")
+    lessons_for_teacher: str = await find_teacher_lessons(message)
+    if lessons_for_teacher:
+        await message.answer(text=lessons_for_teacher, parse_mode="HTML")
+    else:
+        await message.answer("❌ Преподаватель не был найден")
