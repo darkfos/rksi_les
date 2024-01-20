@@ -50,7 +50,19 @@ async def parse_lessons_for_student(name_group: str) -> dict:
             all_data = str(soup.find("body"))
 
             result: dict = await process_str_lessons(all_data)
-            await load_to_json(result)
+            await load_to_json(result, frm="student")
+
+            return result
+
+
+async def parse_lessons_for_teachers(name_teacher: str) -> dict:
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url_mobile, data={"teacher": name_teacher, "stp": "Показать!"}) as response:
+            read_file = await aiohttp.StreamReader.read(response.content)
+            soup = BeautifulSoup(read_file, "html.parser")
+            all_data = str(soup.find("body"))
+            result: dict = await process_str_lessons(all_data)
+            await load_to_json(result, frm="teacher")
 
             return result
 
