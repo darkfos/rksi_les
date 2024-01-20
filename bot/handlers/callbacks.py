@@ -65,8 +65,8 @@ async def sel_groups_button(callback_bt: types.CallbackQuery):
 
 @callback_router.callback_query(F.data.endswith("stbtn"))
 async def button_to_start_menu(callback_st_mn: types.CallbackQuery, state: FSMContext):
+    md = Database()
     if callback_st_mn.data == "shablon_stbtn":
-        md = Database()
         res = await md.get_one_user(data={"tg_id": callback_st_mn.from_user.id})
 
         if res:
@@ -77,7 +77,26 @@ async def button_to_start_menu(callback_st_mn: types.CallbackQuery, state: FSMCo
         else:
             await callback_st_mn.message.reply("Введите ваше имя")
             await state.set_state(SampleData.name)
+
+    elif callback_st_mn.data == "del_shablon_stbtn":
+
+        del_templates = await md.del_one_user(
+            data={
+                "tg_id": callback_st_mn.from_user.id
+            }
+        )
+
+
+        if del_templates:
+
+            await callback_st_mn.answer("🎯 Ваш шаблон был успешно удалён")
+
+        else:
+
+            await callback_st_mn.answer("⛔ Ваш шаблон не был создан")
+
     else:
+
         await callback_st_mn.message.answer("Вы выбрали ручной поиск, введите <b>группу</b>", parse_mode="HTML")
         await state.set_state(GroupState.name_group)
 
@@ -85,10 +104,9 @@ async def button_to_start_menu(callback_st_mn: types.CallbackQuery, state: FSMCo
 async def show_all_lessons(name_group: str = None, name_teacher: str = None) -> str:
 
     if name_group:
-        to_find = "lessons_schedule.json"
+        to_find = "lessons_schedule_for_students.json"
         text_find = "Расписание пар для группы <b>{0}</b>".format(name_group)
         get_lessons = await parse_lessons_for_student(name_group)
-
     else:
         to_find = "lessons_schedule_for_teachers.json"
         text_find = "Расписание пар для Преподавателя <b>{0}</b>".format(name_teacher)

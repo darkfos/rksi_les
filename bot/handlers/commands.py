@@ -1,7 +1,7 @@
 import config
 
 from aiogram import Router
-from aiogram.types import Message, FSInputFile
+from aiogram.types import Message, FSInputFile, InputMediaVideo
 from aiogram.filters import CommandStart
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
@@ -17,6 +17,7 @@ command_router = Router()
 
 @command_router.message(CommandStart())
 async def start_command(message: Message):
+    await message.answer_video(video=FSInputFile("static/img/cat_boss.gif", "cats"))
     await message.reply(text=start_text, reply_markup=await get_start_bt(), parse_mode="HTML")
 
 
