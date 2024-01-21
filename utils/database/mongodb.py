@@ -21,8 +21,14 @@ class Database:
     async def get_all_users(self) -> list:
         return list(self.table_users.find())
 
-    async def del_one_user(self, data: dict):
-        self.table_users.delete_one(data)
+    async def del_one_user(self, data: dict) -> bool:
+        try:
+
+            self.table_users.delete_one(data)
+            return True
+
+        except Exception as e:
+            return False
 
     async def update_one_user(self, data_to_find: dict, new_data: dict):
         data_to_change: dict = {"$set": new_data}

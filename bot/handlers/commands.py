@@ -81,11 +81,14 @@ async def get_lessons_for_group(message: Message, state: FSMContext):
 @command_router.message(TeacherState.name)
 async def get_name_teacher(message: Message, state: FSMContext):
     all_teachers: list = await parse_teachers()
-    answer_teacher: list = any([message.text in teacher for teacher in all_teachers])
+    answer_teacher: bool = any([message.text.lower() in teacher.lower() for teacher in all_teachers])
+
     if answer_teacher:
         await state.update_data(name=message.text)
         await state.clear()
         lessons_for_teacher: str = await find_teacher_lessons(message)
         await message.answer(text=lessons_for_teacher, parse_mode="HTML")
+
     else:
+
         await message.answer("❌ Преподаватель не был найден")

@@ -90,20 +90,26 @@ async def button_to_start_menu(callback_st_mn: types.CallbackQuery, state: FSMCo
 
     elif callback_st_mn.data == "del_shablon_stbtn":
 
-        del_templates = await md.del_one_user(
+        find_user = await md.get_one_user(
             data={
                 "tg_id": callback_st_mn.from_user.id
             }
         )
 
 
-        if del_templates:
+        if find_user:
+
+            await md.del_one_user(
+                data = {
+                    "tg_id": callback_st_mn.from_user.id
+                }
+            )
 
             await callback_st_mn.answer("🎯 Ваш шаблон был успешно удалён")
 
         else:
 
-            await callback_st_mn.answer("⛔ Ваш шаблон не был создан")
+            await callback_st_mn.answer("🎯 Ваш шаблон ещё не был создан")
 
     else:
 

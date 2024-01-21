@@ -12,6 +12,5 @@ class FindTeacherName(BaseFilter):
     """
     async def __call__(self, message: types.Message) -> bool:
         all_teachers: List = await parse_teachers()
-        find_teacher_in_lst = any(message.text in teacher for teacher in all_teachers)
-        
+        find_teacher_in_lst: bool = any([message.text.title() in teacher for teacher in all_teachers])
         return find_teacher_in_lst

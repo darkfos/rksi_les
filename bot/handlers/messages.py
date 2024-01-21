@@ -89,8 +89,8 @@ async def name_group_result(clb_answer: types.Message, state: FSMContext):
 # Обработка всех остальных сообщений
 @msg_router.message()
 async def processing_other_messages(message: types.Message):
-    if message.text.lower() in await all_groups():
-        await message.answer(await show_all_lessons(message.text), parse_mode="HTML")
+    if message.text.upper() in await all_groups():
+        await message.answer(await show_all_lessons(message.text.upper()), parse_mode="HTML")
     else:
         await message.answer("Не могу распознать ваш текст.\nОжидается команда или инициалы преподавателя")
 
@@ -102,15 +102,21 @@ async def processing_other_messages(message: types.Message):
 async def find_teacher_lessons(message: types.Message) -> str:
     all_teachers: list = await parse_teachers()
     name_teacher: str = ""
-
+    name_teacher_from_user: str = message.text.title()
     for teacher in all_teachers:
-        if message.text.lower() in teacher.lower():
+        if name_teacher_from_user in teacher:
             name_teacher = teacher
             break
 
-    await parse_lessons_for_teachers(name_teacher)
-    await message.answer("⏳ Преподаватель был найден, ожидайте ответа...")
+    if name_teacher:
 
-    result: str = await show_all_lessons(name_teacher=name_teacher)
+        await parse_lessons_for_teachers(name_teacher)
+        await message.answer("⏳ Преподаватель был найден, ожидайте ответа...")
 
-    return result
+        result: str = await show_all_lessons(name_teacher=name_teacher)
+
+        return result
+
+    else:
+
+        return "Преподаватель не был найден"
