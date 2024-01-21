@@ -2,6 +2,8 @@ import json
 
 from bot.text import get_all_groups
 
+
+# Загружает данны в json file, используется для (преподаватели, студенты)
 async def load_to_json(data_dict_lessons: dict, frm: str) -> None:
     if frm == "teacher":
         data_file: str = "lessons_schedule_for_teachers.json"
@@ -13,6 +15,9 @@ async def load_to_json(data_dict_lessons: dict, frm: str) -> None:
     with open(f"data/{data_file}", "w") as js_write:
         json.dump(data_dict_lessons, js_write, indent=4, ensure_ascii=False)
 
+
+
+# Загружает данные в text file, используется для преподавателей
 async def load_prepods_in_file(data_teachers: list) -> None:
     all_teachers: str = ""
     for teacher in data_teachers:
@@ -22,6 +27,7 @@ async def load_prepods_in_file(data_teachers: list) -> None:
         wr_t.write(all_teachers)
 
 
+# Загружает данные в text file, используется для учебных групп
 async def load_groups_in_file(data_groupds: list) -> None:
     all_grp = await get_all_groups(data_groupds)
 

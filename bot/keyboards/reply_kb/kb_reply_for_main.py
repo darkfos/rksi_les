@@ -1,5 +1,7 @@
 from aiogram.utils.keyboard import ReplyKeyboardMarkup, KeyboardButton
 
+
+# Reply кнопки для выбора пункта меню - CommandStart()
 async def get_start_bt() -> ReplyKeyboardMarkup:
 
     kb = [

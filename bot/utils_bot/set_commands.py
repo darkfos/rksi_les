@@ -1,5 +1,7 @@
 from aiogram import types, Bot
 
+
+# Установка списка команд в description бота
 async def set_all_commands(bot: Bot):
     commands = [
         types.BotCommand(command="start", description="Запуск бота, выбор режима"),

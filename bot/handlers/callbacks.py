@@ -6,15 +6,18 @@ from aiogram.fsm.context import FSMContext
 
 from bot.filters import TeacherData, GroupsData
 from bot.text import get_all_teachers, get_all_groups
+from bot.states import SampleData, GroupState
+
 from rksi_parse import parse_teachers, load_prepods_in_file, load_groups_in_file, all_groups, parse_lessons_for_student, \
     parse_lessons_for_teachers, load_prepods_to_csv, load_groups_to_csv
-from bot.states import SampleData, GroupState
+
 from utils import Database
 
-
+# Роутер для обработки callback сообщений
 callback_router = Router()
 
 
+# Обработка запроса "Получить список преподавателей"
 @callback_router.callback_query(TeacherData())
 async def sel_prepods_button(callback_bt: types.CallbackQuery):
     all_teachers: list = await parse_teachers()
@@ -24,7 +27,7 @@ async def sel_prepods_button(callback_bt: types.CallbackQuery):
         await callback_bt.message.reply(await get_all_teachers(all_teachers))
 
     elif callback_bt.data == "file_btn":
-        #Запись данных в файл, необходимо для отправки
+        # Запись данных в файл, необходимо для отправки
         await load_prepods_in_file(all_teachers)
 
         file_to_send: FSInputFile = FSInputFile("data/all_teachers.txt")
@@ -37,6 +40,10 @@ async def sel_prepods_button(callback_bt: types.CallbackQuery):
         await callback_bt.message.answer_document(document=file_csv)
 
 
+# ------------------------------------------- #
+
+
+# Обработка для получения "Списка всех учебных групп"
 @callback_router.callback_query(GroupsData())
 async def sel_groups_button(callback_bt: types.CallbackQuery):
 
@@ -62,7 +69,10 @@ async def sel_groups_button(callback_bt: types.CallbackQuery):
         await callback_bt.message.answer_document(document=file_csv)
 
 
+# ------------------------------------------- #
 
+
+# Обработка для получения списка пар, регистрация шаблона
 @callback_router.callback_query(F.data.endswith("stbtn"))
 async def button_to_start_menu(callback_st_mn: types.CallbackQuery, state: FSMContext):
     md = Database()
@@ -101,6 +111,10 @@ async def button_to_start_menu(callback_st_mn: types.CallbackQuery, state: FSMCo
         await state.set_state(GroupState.name_group)
 
 
+# ------------------------------------------- #
+
+
+# Метод для сортировки занятий, парсинг текста
 async def show_all_lessons(name_group: str = None, name_teacher: str = None) -> str:
 
     if name_group:
