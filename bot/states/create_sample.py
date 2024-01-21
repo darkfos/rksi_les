@@ -8,3 +8,9 @@ class SampleData(StatesGroup):
 
     name: str = State()
     name_group: str = State()
+
+
+class ChoicePeople(StatesGroup):
+
+    choice_pers: str = State()
+    name_pers: str = State()

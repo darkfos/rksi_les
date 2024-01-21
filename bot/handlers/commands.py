@@ -1,19 +1,20 @@
-import config
+import datetime
+
 
 from aiogram import Router
-from aiogram.types import Message, FSInputFile, InputMediaVideo
+from aiogram.types import Message, FSInputFile
 from aiogram.filters import CommandStart
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
 
 
 from bot.text import help_text, start_text
-from bot.handlers import find_teacher_lessons
-from bot.states import TeacherState, GroupState
+from bot.handlers import find_teacher_lessons, show_all_lessons
+from bot.states import TeacherState, GroupState, ChoicePeople
 from bot.keyboards import sel_to_teachers, get_start_bt, sel_to_groups
 
 
-from rksi_parse import parse_teachers
+from rksi_parse import parse_teachers, all_groups as al_grp
 
 # Роутер для обработки комманд
 command_router = Router()
@@ -77,6 +78,15 @@ async def get_lessons_for_group(message: Message, state: FSMContext):
 # ------------------------------------------- #
 
 
+# Обработчик команды "lessons_now"
+@command_router.message(Command("lessons_now"))
+async def get_lessons_now(message: Message, state: FSMContext):
+    await message.answer("✍🏼 Введите вашу роль - (студент, преподаватель)")
+    await state.set_state(ChoicePeople.choice_pers)
+
+# ------------------------------------------- #
+
+
 # Обработчик состояния - Получение инициалов преподавателя
 @command_router.message(TeacherState.name)
 async def get_name_teacher(message: Message, state: FSMContext):
@@ -92,3 +102,119 @@ async def get_name_teacher(message: Message, state: FSMContext):
     else:
 
         await message.answer("❌ Преподаватель не был найден")
+
+
+# ------------------------------------------- #
+
+
+# Обработчик состояния - Получение типа юзера
+@command_router.message(ChoicePeople.choice_pers)
+async def get_pers_info(message: Message, state: FSMContext):
+    if message.text.lower() in ("студент", "преподаватель"):
+        await state.update_data(choice_pres=message.text.lower())
+        await state.set_state(ChoicePeople.name_pers)
+
+        if message.text.lower() == "студент":
+            await message.answer("✍🏼 Введите учебную группу")
+        else:
+            await message.answer("✍🏼 Введите инициалы преподавателя")
+    else:
+        await message.answer("❌ Неверные данные")
+
+
+# ------------------------------------------- #
+
+
+# Обработчик состояния - Получение названия типа юзера
+@command_router.message(ChoicePeople.name_pers)
+async def get_pers_info_name(message: Message, state: FSMContext):
+
+    pers_info = await state.get_data()
+    today_data = datetime.date.today()
+    day_week = today_data.weekday()
+
+    monts: dict = {
+        1: "января",
+        2: "февраля",
+        3: "марта",
+        4: "апреля",
+        5: "мая",
+        6: "июня",
+        7: "июля",
+        8: "августа",
+        9: "сентября",
+        10: "октября",
+        11: "ноября",
+        12: "декабря"
+    }
+
+    month_today: str = monts.get(today_data.month)
+    day_today: int = today_data.day
+
+    if pers_info["choice_pres"] == "студент":
+        all_groups_for_1d: bool = any([message.text.upper() == group for group in await al_grp()])
+        if all_groups_for_1d:
+            await state.update_data(name_pers=message.text.upper())
+            await state.clear()
+
+            message_for_1d = await show_all_lessons(name_group=message.text.upper())
+
+            lessons_for_student_1d: str = ""
+
+            if day_week not in (6, 5):
+                for line in message_for_1d.split("\n"):
+                    if f"{day_today+1} {month_today}" in line:
+                        break
+                    else:
+                        lessons_for_student_1d += line + "\n"
+
+            if lessons_for_student_1d and len(lessons_for_student_1d.split("\n")) > 3:
+
+                await message.answer(text=lessons_for_student_1d, parse_mode="HTML")
+
+            else:
+
+                await message.answer(text="На сегодня пар нет")
+
+        else:
+
+            await message.answer("❌ Неверные данные")
+
+    elif pers_info["choice_pres"] == "преподаватель":
+
+        name_teacher_for_1d: str = ""
+
+        for teacher in await parse_teachers():
+            if message.text.lower() in teacher.lower():
+                name_teacher_for_1d = teacher
+                break
+
+        if name_teacher_for_1d:
+            await state.update_data(name_pers=message.text.upper())
+            await state.clear()
+
+            message_for_1d = await show_all_lessons(name_teacher=name_teacher_for_1d)
+
+
+            lessons_for_teachers_1d: str = ""
+
+            if day_week not in (6, 5):
+                for line in message_for_1d.split("\n"):
+                    if f"{day_today+1} {month_today}" in line:
+                        break
+                    else:
+                        lessons_for_teachers_1d += line + "\n"
+
+            if lessons_for_teachers_1d and (len(lessons_for_teachers_1d.split("\n")) > 3):
+
+                print(lessons_for_teachers_1d.split("\n"))
+
+                await message.answer(text=lessons_for_teachers_1d, parse_mode="HTML")
+
+            else:
+
+                await message.answer(text="На сегодня пар нет")
+
+        else:
+
+            await message.answer("❌ Неверные данные")
